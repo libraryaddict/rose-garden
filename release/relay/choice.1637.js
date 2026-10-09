@@ -2,7 +2,7 @@
 var kol = require("kolmafia");
 
 module.exports.main = function main(pageTextEncoded) {
-  let pageText = kol.urlDecode(pageTextEncoded);
+  var pageText = kol.urlDecode(pageTextEncoded);
   var multiplier = 35;
   var found = pageText.match(/var RG = (.*?);<\/script>/);
 
@@ -13,109 +13,125 @@ module.exports.main = function main(pageTextEncoded) {
   var data = JSON.parse(found[1]);
   var grid = data.grid;
 
-  let output =
-    "<svg width='" +
-    31 * multiplier +
-    "' height='" +
-    31 * multiplier +
-    "' viewbox='0 0 " +
-    31 * multiplier +
-    " " +
-    31 * multiplier +
-    "' xmlns='http://www.w3.org/2000/svg'>";
+  var output = `<svg width='${31 * multiplier}' height='${
+    31 * multiplier
+  }' viewbox='0 0 ${31 * multiplier} ${
+    31 * multiplier
+  }' xmlns='http://www.w3.org/2000/svg'>`;
 
-  for (let x = 0; x < 31; x++) {
-    for (let y = 0; y < 31; y++) {
+  var shortMult = multiplier * 0.2;
+  var largeMult = multiplier * 0.8;
+  var wallLines = {
+    5: [
+      [0, multiplier / 3, multiplier, multiplier / 3],
+      [0, (2 * multiplier) / 3, multiplier, (2 * multiplier) / 3],
+      [multiplier / 2, 0, multiplier / 2, multiplier / 3],
+      [multiplier / 4, multiplier / 3, multiplier / 4, (2 * multiplier) / 3],
+      [
+        (3 * multiplier) / 4,
+        multiplier / 3,
+        (3 * multiplier) / 4,
+        (2 * multiplier) / 3,
+      ],
+      [multiplier / 2, (2 * multiplier) / 3, multiplier / 2, multiplier],
+    ],
+    6: [
+      [shortMult, multiplier / 2, largeMult, multiplier / 2],
+      [shortMult, shortMult, shortMult, largeMult],
+      [multiplier / 2, shortMult, multiplier / 2, largeMult],
+      [largeMult, shortMult, largeMult, largeMult],
+    ],
+    7: [
+      [0, multiplier / 2, multiplier / 2, 0],
+      [0, multiplier, multiplier, 0],
+      [multiplier / 2, multiplier, multiplier, multiplier / 2],
+      [0, multiplier / 2, multiplier / 2, multiplier],
+      [0, 0, multiplier, multiplier],
+      [multiplier / 2, 0, multiplier, multiplier / 2],
+    ],
+  };
+  output += "<defs>";
+
+  for (var wall in wallLines) {
+    output += `<pattern id='wall${wall}' patternUnits='userSpaceOnUse' width='${
+      multiplier
+    }' height='${multiplier}'><rect width='${multiplier}' height='${
+      multiplier
+    }' fill='black'/>`;
+
+    for (var l of wallLines[wall]) {
+      output += `<line x1='${l[0]}' y1='${l[1]}' x2='${l[2]}' y2='${
+        l[3]
+      }' stroke='white' stroke-width='1.5'/>`;
+    }
+
+    output += "</pattern>";
+  }
+
+  output += "</defs>";
+
+  for (var x = 0; x < 31; x++) {
+    for (var y = 0; y < 31; y++) {
       var chr = grid.charAt(31 * y + x);
-      let fill;
+      var fill;
       var style = "stroke-width:1;stroke:black";
 
-      if (chr == "0" || chr == "4") {
+      if (chr === "0" || chr === "4") {
         fill = "lightyellow";
-      } else if (chr == "1") {
+      } else if (chr === "1") {
         fill = "black";
-      } else if (chr == "2" || chr == "3") {
+      } else if (chr === "2") {
         fill = "lemonchiffon";
-      } else if (chr == "5") {
-        fill = "maroon";
-      } else if (chr == "6") {
-        fill = "midnightblue";
-      } else if (chr == "7") {
-        fill = "silver";
-      } else if (chr == "8") {
+      } else if (chr === "3") {
+        fill = "#FFB8B8";
+      } else if (chr === "5" || chr === "6" || chr === "7") {
+        fill = `url(#wall${chr})`;
+        style = "stroke-width:1;stroke:#777777";
+      } else if (chr === "8") {
         fill = "lime";
       } else {
         fill = "orange";
       }
 
-      output +=
-        "<rect width='" +
-        multiplier +
-        "' height='" +
-        multiplier +
-        "' x='" +
-        x * multiplier +
-        "' y='" +
-        y * multiplier +
-        "' fill='" +
-        fill +
-        "' style='" +
-        style +
-        "'/>";
+      output += `<rect width='${multiplier}' height='${multiplier}' x='${
+        x * multiplier
+      }' y='${y * multiplier}' fill='${fill}' style='${style}'/>`;
     }
   }
 
   for (var poi of data.pois) {
-    if (kol.getProperty("vr1637_printPois") == "true") {
+    if (kol.getProperty("vr1637_printPois") === "true") {
       kol.print(JSON.stringify(poi));
     }
 
-    let fill = "blue";
+    fill = "blue";
 
-    if (poi.k == "fountain") {
+    if (poi.k === "fountain") {
       fill = "cyan";
-    } else if (poi.k == "monster") {
+    } else if (poi.k === "monster") {
       fill = "darkred";
-    } else if (poi.k == "food" || poi.k == "booze" || poi.k == "spleen") {
+    } else if (poi.k === "food" || poi.k === "booze" || poi.k === "spleen") {
       fill = "green";
-    } else if (poi.k == "chest") {
+    } else if (poi.k === "chest") {
       fill = "orange";
     }
 
-    output +=
-      "<circle cx='" +
-      (multiplier * poi.x + multiplier * 0.5) +
-      "' cy='" +
-      (multiplier * poi.y + multiplier * 0.5) +
-      "' r='" +
-      multiplier * 0.3 +
-      "' fill='" +
-      (poi.d == 1 ? "silver" : fill) +
-      "' style='stroke-width:10;stroke:" +
-      fill +
-      "'/>";
+    output += `<circle cx='${multiplier * poi.x + multiplier * 0.5}' cy='${
+      multiplier * poi.y + multiplier * 0.5
+    }' r='${multiplier * 0.3}' fill='${
+      poi.d === 1 ? "silver" : fill
+    }' style='stroke-width:10;stroke:${fill}'/>`;
   }
 
-  output +=
-    "<polygon points='0," +
-    multiplier * -0.4 +
-    " " +
-    multiplier * 0.3 +
-    "," +
-    multiplier * 0.35 +
-    " 0," +
-    multiplier * 0.15 +
-    " " +
-    multiplier * -0.3 +
-    "," +
-    multiplier * 0.35 +
-    "' style='fill:lime;stroke:black;stroke-width:2' transform='translate(" +
-    (multiplier * data.pos.x + multiplier * 0.5) +
-    "," +
-    (multiplier * data.pos.y + multiplier * 0.5) +
-    ") rotate(" +
-    data.pos.f * 90 +
-    ")'/>";
+  output += `<polygon points='0,${multiplier * -0.4} ${multiplier * 0.3},${
+    multiplier * 0.35
+  } 0,${multiplier * 0.15} ${multiplier * -0.3},${
+    multiplier * 0.35
+  }' style='fill:lime;stroke:black;stroke-width:2' transform='translate(${
+    multiplier * data.pos.x + multiplier * 0.5
+  },${multiplier * data.pos.y + multiplier * 0.5}) rotate(${
+    data.pos.f * 90
+  })'/>`;
 
   var PLAQUE_OFFSETS = [
     [multiplier * 0.5, multiplier],
@@ -123,47 +139,41 @@ module.exports.main = function main(pageTextEncoded) {
     [multiplier * 0.5, 0],
     [multiplier, multiplier * 0.5],
   ];
-  output +=
-    "<style>.plaque{fill:#FF7F7F;font:" +
-    multiplier * 0.6 +
-    "px bolder;font-family:monospace;stroke:black;stroke-width:3px;paint-order:stroke}</style>";
+  output += `<style>.plaque{fill:#FF7F7F;font:${
+    multiplier * 0.6
+  }px bolder;font-family:monospace;stroke:black;stroke-width:3px;paint-order:stroke}</style>`;
 
-  if (kol.getProperty("vr1637_printPlaques") == "true") {
-    kol.print('"plaques": ' + JSON.stringify(data.plaques));
+  if (kol.getProperty("vr1637_printPlaques") === "true") {
+    kol.print(`"plaques": ${JSON.stringify(data.plaques)}`);
   }
 
   for (var plaque of data.plaques) {
-    output +=
-      "<text x='" +
-      (multiplier * plaque.x + PLAQUE_OFFSETS[plaque.f][0]) +
-      "' y='" +
-      (multiplier * plaque.y + PLAQUE_OFFSETS[plaque.f][1]) +
-      "' text-anchor='middle' dominant-baseline='middle' class='plaque'>" +
-      plaque.icon.substring(5, 6).toUpperCase() +
-      "</text>";
+    output += `<text x='${
+      multiplier * plaque.x + PLAQUE_OFFSETS[plaque.f][0]
+    }' y='${
+      multiplier * plaque.y + PLAQUE_OFFSETS[plaque.f][1]
+    }' text-anchor='middle' dominant-baseline='middle' class='plaque'>${plaque.icon
+      .substring(5, 6)
+      .toUpperCase()}</text>`;
 
-    if (kol.getProperty("vr1637_printPlaques") == "true") {
+    if (kol.getProperty("vr1637_printPlaques") === "true") {
       kol.print(
-        "(" +
-          plaque.x +
-          "," +
-          plaque.y +
-          "): " +
-          plaque.icon.substring(5, 6).toUpperCase() +
-          plaque.f,
+        `(${plaque.x},${plaque.y}): ${plaque.icon
+          .substring(5, 6)
+          .toUpperCase()}${plaque.f}`,
       );
     }
   }
 
   output += "</svg>";
 
-  if (kol.getProperty("vr1637_saveSvg") == "true") {
+  if (kol.getProperty("vr1637_saveSvg") === "true") {
     kol.bufferToFile(output, "rose_garden_map.svg");
     kol.print("Map written to data/rose_garden_map.svg", "blue");
   }
 
   // 1 to invalidate the hash
-  let mapHash = 1;
+  var mapHash = 1;
 
   var mapText =
     data.grid +
@@ -190,19 +200,20 @@ module.exports.main = function main(pageTextEncoded) {
   }
 
   // Compare the saved hash to ensure things are not spammed
-  var submitted = kol.getProperty("roseGarden_submittedMap") == String(mapHash);
+  var submitted =
+    kol.getProperty("roseGarden_submittedMap") === String(mapHash);
 
   // Escape and add spaces to prevent kol breaking it up
   var escaped = found[1]
     .replace(/\\/g, "\\\\")
     .replace(/ /g, "\\s")
-    .replace(/(?:\\[\\s])+/g, (block) => " " + block + " ");
+    .replace(/(?:\\[\\s])+/g, (block) => ` ${block} `);
   // Kmails are encoded, then KoL's backend is limiting them to 2k chars
   var encoded = kol.entityEncode(escaped);
   var chunks = [];
 
-  for (let start = 0; start < encoded.length; ) {
-    let end = start + 1900;
+  for (var start = 0; start < encoded.length; ) {
+    var end = start + 1900;
     var entityStart = encoded.lastIndexOf("&", end - 1);
 
     // Go back if the part would cut an entity in half
@@ -223,12 +234,10 @@ module.exports.main = function main(pageTextEncoded) {
   }
 
   // Each section, that's going in a kmail of their own. The bot's name is enough
-  var parts = chunks.map(
-    (chunk, i) => "(" + (i + 1) + "/" + chunks.length + ")" + chunk,
-  );
+  var parts = chunks.map((chunk, i) => `(${i + 1}/${chunks.length})${chunk}`);
 
-  var inlineMap = kol.getProperty("roseGarden_inlineMap") == "true";
-  var noCheating = kol.getProperty("roseGarden_noCheating") == "true";
+  var inlineMap = kol.getProperty("roseGarden_inlineMap") === "true";
+  var noCheating = kol.getProperty("roseGarden_noCheating") === "true";
 
   var button = `<script>
 	// Source - https://stackoverflow.com/a/23667012
@@ -247,8 +256,31 @@ module.exports.main = function main(pageTextEncoded) {
 		var cursorX = multiplier * mapPos.x + multiplier * 0.5;
 		var cursorY = multiplier * mapPos.y + multiplier * 0.5;
 		svg.querySelector("polygon").setAttribute("transform", "translate(" + cursorX + "," + cursorY + ") rotate(" + mapPos.f * 90 + ")");
+		svg.style.cursor = "pointer";
+		svg.addEventListener("click", walkTo);
 
 		return svg;
+	}
+
+	function walkableCell(x, y) {
+		if ("1567".includes(RG.grid.charAt(31 * y + x))) return false;
+		return !RG.pois.some((p) => !p.d && p.k === "monster" && p.x === x && p.y === y);
+	}
+
+	function walkTo(event) {
+		event.stopPropagation();
+		var box = event.currentTarget.getBoundingClientRect();
+		var x = Math.floor(((event.clientX - box.left) / box.width) * 31);
+		var y = Math.floor(((event.clientY - box.top) / box.height) * 31);
+		if (!walkableCell(x, y)) return;
+		var leave = document.getElementById("rgleave");
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "choice.php", true);
+		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    // Needed to update their view ingame, sending a bunch of movements seems a bit odd.
+		xhr.onload = () => location.reload();
+		xhr.send("whichchoice=" + encodeURIComponent(leave.whichchoice.value) + "&pwd=" + encodeURIComponent(leave.pwd.value) +
+			"&option=4&rgx=" + x + "&rgy=" + y + "&rgf=" + mapPos.f);
 	}
 
 	function svgToImage() {
@@ -326,7 +358,7 @@ module.exports.main = function main(pageTextEncoded) {
 	XMLHttpRequest.prototype.send = function (body) {
 		var params = new URLSearchParams(body);
 
-		if (params.get("option") == "4") {
+		if (params.get("option") === "4") {
 			mapPos = { x: params.get("rgx"), y: params.get("rgy"), f: params.get("rgf") };
 			drawMap();
 		}
@@ -373,7 +405,7 @@ module.exports.main = function main(pageTextEncoded) {
 		window.dispatchEvent(new Event("resize"));
 	}
 
-	if (${!noCheating && kol.getProperty("roseGarden_showChoices") == "true"}) {
+	if (${!noCheating && kol.getProperty("roseGarden_showChoices") === "true"}) {
 		document.body.classList.add("rgchoices");
 		document.getElementById("rgpois").classList.add("rgshow");
 	}
@@ -392,11 +424,11 @@ module.exports.main = function main(pageTextEncoded) {
 		<button onclick="submitGarden(this)" ${submitted ? "disabled" : ""} title="Submit garden data to assist spading effort.">${submitted ? "Submitted" : "Submit"}</button>
 	</div>
 	<script>
-	if (${!noCheating && inlineMap && kol.getProperty("roseGarden_showMap") == "true"}) {
+	if (${!noCheating && inlineMap && kol.getProperty("roseGarden_showMap") === "true"}) {
 		showSVG();
 	}
 	</script>`;
 
-  pageText = pageText.replace("</body>", button + "</body>");
+  pageText = pageText.replace("</body>", `${button}</body>`);
   kol.write(pageText);
 };
