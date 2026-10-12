@@ -283,7 +283,7 @@ module.exports.main = function main(pageTextEncoded) {
 		xhr.open("POST", "choice.php", true);
 		xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
     // Needed to update their view ingame, sending a bunch of movements seems a bit odd.
-		xhr.onload = () => location.reload();
+		xhr.onload = () => location.replace("choice.php");
 		xhr.send("whichchoice=" + encodeURIComponent(leave.whichchoice.value) + "&pwd=" + encodeURIComponent(leave.pwd.value) +
 			"&option=4&rgx=" + x + "&rgy=" + y + "&rgf=" + mapPos.f);
 	}
@@ -396,7 +396,7 @@ module.exports.main = function main(pageTextEncoded) {
 
 		await setProperty("roseGarden_submittedMap", ${JSON.stringify(String(mapHash))});
     // Make sure the game sees they are in the choice, so they don't get stuck in a weird state
-		location.reload();
+		location.replace("choice.php");
 	}
 
 	function setProperty(name, value) {
