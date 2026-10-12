@@ -417,7 +417,11 @@ module.exports.main = function main(pageTextEncoded) {
 	</script>
 	<style>#inlineGardenMap{display:none;vertical-align:top} body.inlineGardenMap #inlineGardenMap{display:inline-block} body.inlineGardenMap #rgwrap{display:inline-block!important;width:52vw!important;vertical-align:top}</style>
 	<style>body.rgchoices #rgwrap, body.rgchoices #inlineGardenMap{display:none!important}</style>
-	<div style="position:absolute;right:0;top:0;z-index:9999;display:flex">
+	<style>#roseMenu{display:none} body.roseMenu #roseMenu{display:flex}</style>
+	<div style="position:absolute;right:0;top:0;z-index:9999;display:flex;flex-direction:column;align-items:flex-end">
+		<button onclick="document.body.classList.toggle('roseMenu')" style="font-size:20px;border:1px solid black;background:white">&#9776;</button>
+		${submitted ? "" : `<button onclick="submitGarden(this)" style="padding:6px 14px;" title="Submit garden data to assist spading effort.">Submit</button>`}
+		<div id="roseMenu" style="position:absolute;right:0;top:100%;flex-direction:column;background:white;border:1px solid black;padding:4px;gap:4px">
 		${
       noCheating
         ? ""
@@ -426,7 +430,8 @@ module.exports.main = function main(pageTextEncoded) {
 		<button onclick="svgToImage()" title="Download garden map">Save map</button>
 		<button onclick="toggleChoices()" title="Show the choices that KoL added for device compatibility, this is not the intended rose garden gameplay.">Show choices</button>`
     }
-		<button onclick="submitGarden(this)" ${submitted ? "disabled" : ""} title="Submit garden data to assist spading effort.">${submitted ? "Submitted" : "Submit"}</button>
+		${submitted ? `<button disabled>Submitted</button>` : ""}
+		</div>
 	</div>
 	<script>
 	if (${!noCheating && inlineMap && kol.getProperty("roseGarden_showMap") === "true"}) {
