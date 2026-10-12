@@ -76,6 +76,7 @@ module.exports.main = function main(pageTextEncoded) {
       var fill;
       var style = "stroke-width:1;stroke:black";
 
+      // 0 is empty, 4 is POI, which we render as a circle instead.
       if (chr === "0" || chr === "4") {
         fill = "lightyellow";
       } else if (chr === "1") {
@@ -204,10 +205,14 @@ module.exports.main = function main(pageTextEncoded) {
     kol.getProperty("roseGarden_submittedMap") === String(mapHash);
 
   // Escape and add spaces to prevent kol breaking it up
-  var escaped = found[1]
+  var escaped = (
+    `Path: ${kol.myPath()}\tClass: ${kol.myClass()}\tKoL Day: ${kol.daycount()}\tDaycount: ${kol.myDaycount()}\tMoon: ${kol.mySign()}\tGrowth: ${kol.getCampground()["black garden rose"]}\t` +
+    found[1]
+  )
     .replace(/\\/g, "\\\\")
     .replace(/ /g, "\\s")
-    .replace(/(?:\\[\\s])+/g, (block) => ` ${block} `);
+    .replace(/\t/g, "\\t")
+    .replace(/(?:\\[\\st])+/g, (block) => ` ${block} `);
   // Kmails are encoded, then KoL's backend is limiting them to 2k chars
   var encoded = kol.entityEncode(escaped);
   var chunks = [];
